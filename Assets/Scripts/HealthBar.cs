@@ -7,57 +7,42 @@ public class HealthBar : MonoBehaviour
     [SerializeField] private Player _player;
     [SerializeField] private Slider _healthBar;
 
-    private int _maxHealth = 100;
-    private int _minHealth = 0;
-    private int _amountDifference = 10;
-    private int _currentHealth;
-    private float _speedChangeValue = 0.2f;
-    private float _timeChangeValue = 1.0f;
+    private float _speedChangeValue = 0.5f;
     private Coroutine _changeHealth;
-
-    public void OnDamageButtonClicked()
-    {
-        TakeDamage(_amountDifference);
-        _player.TakeDamage();
-    }
-
-    public void OnHealButtonClicked()
-    {
-        Heal(_amountDifference);
-        _player.Heal();
-    }
 
     private void Start()
     {
-        _healthBar.maxValue = _maxHealth;
-        _currentHealth = _player.Health;
+        _healthBar.maxValue = _player.MaxHealth;
         _healthBar.value = _player.Health;
+        _healthBar.minValue = _player.MinHealth;
     }
 
-    private void TakeDamage(int damageAmount)
+    private void OnEnable()
     {
-        _currentHealth -= damageAmount;
-        _currentHealth = Mathf.Clamp(_currentHealth, _minHealth, _maxHealth);
-
-        _changeHealth = StartCoroutine(ChangeHealth());
+        _player.HealthChanged += OnHealthChanged;
     }
 
-    private void Heal(int healAmount)
+
+    private void OnDisable()
     {
-        _currentHealth += healAmount;
-        _currentHealth = Mathf.Clamp(_currentHealth, _minHealth, _maxHealth);
-        
-        _changeHealth = StartCoroutine(ChangeHealth());
+        _player.HealthChanged -= OnHealthChanged;
     }
 
-    private IEnumerator ChangeHealth()
+    private void OnHealthChanged(int health)
     {
-        float currentTime = 0.0f;
-
-        while(currentTime < _timeChangeValue)
+        if(_changeHealth != null)
         {
-            currentTime += Time.deltaTime;
-            _healthBar.value = Mathf.MoveTowards(_healthBar.value, _currentHealth, _speedChangeValue);
+            StopCoroutine(_changeHealth);
+        }
+
+        _changeHealth = StartCoroutine(ChangeHealth(health));
+    }
+
+    private IEnumerator ChangeHealth(float target)
+    {
+        while(_healthBar.value != target)
+        {
+            _healthBar.value = Mathf.MoveTowards(_healthBar.value, target, _speedChangeValue);
             yield return null;
         }
     }

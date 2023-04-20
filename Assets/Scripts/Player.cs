@@ -1,39 +1,41 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Player : MonoBehaviour
 {
-    private int _health = 100;
-    private int _amountDifference = 10;
+    public event UnityAction<int> HealthChanged;
 
-    public int Health 
-    {
-        get => _health;
-        private set => _health = value;
-    }
+    public int Health { get; private set; } = 100;
+    public int MaxHealth { get; private set; } = 100;
+    public int MinHealth { get; private set; } = 0;
 
-    public void TakeDamage()
+    public void TakeDamage(int amountDifference)
     {
-        if(_health > 0)
+        Health -= amountDifference;
+
+        if (Health < MinHealth)
         {
-            _health -= _amountDifference;
-            Debug.Log("У игрока теперь - " + _health + " хп");
-        }
-        else
-        {
+            Health = MinHealth;
             Debug.Log("Игрок мертв");
         }
+
+        Debug.Log("У игрока теперь - " + Health + " хп");
+
+        HealthChanged?.Invoke(Health);
     }
 
-    public void Heal()
+    public void Heal(int amountDifference)
     {
-        if(_health < 100)
+        Health += amountDifference;
+
+        if (Health > MaxHealth)
         {
-            _health += _amountDifference;
-            Debug.Log("У игрока теперь - " + _health + " хп");
+            Health = MaxHealth;
+            Debug.Log("Здоровья больше не нужно");
         }
-        else
-        {
-            Debug.Log("Здоровья больше не надо");
-        }
+
+        Debug.Log("У игрока теперь - " + Health + " хп");
+
+        HealthChanged?.Invoke(Health);
     }
 }
