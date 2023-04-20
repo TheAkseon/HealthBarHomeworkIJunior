@@ -11,7 +11,8 @@ public class HealthBar : MonoBehaviour
     private int _minHealth = 0;
     private int _amountDifference = 10;
     private int _currentHealth;
-    private float _speedChangeValue = 0.3f;
+    private float _speedChangeValue = 0.2f;
+    private float _timeChangeValue = 1.0f;
     private Coroutine _changeHealth;
 
     public void OnDamageButtonClicked()
@@ -38,48 +39,26 @@ public class HealthBar : MonoBehaviour
         _currentHealth -= damageAmount;
         _currentHealth = Mathf.Clamp(_currentHealth, _minHealth, _maxHealth);
 
-        if (_changeHealth != null)
-        {
-            _changeHealth = StartCoroutine(WaitForCoroutine(ChangeHealth()));
-        }
-        else
-        {
-            _changeHealth = StartCoroutine(ChangeHealth());
-        }
+        _changeHealth = StartCoroutine(ChangeHealth());
     }
 
     private void Heal(int healAmount)
     {
         _currentHealth += healAmount;
         _currentHealth = Mathf.Clamp(_currentHealth, _minHealth, _maxHealth);
-
-        if (_changeHealth != null)
-        {
-            _changeHealth = StartCoroutine(WaitForCoroutine(ChangeHealth()));
-        }
-        else
-        {
-            _changeHealth = StartCoroutine(ChangeHealth());
-        }
+        
+        _changeHealth = StartCoroutine(ChangeHealth());
     }
 
     private IEnumerator ChangeHealth()
     {
-        float startTime = Time.time;
-        float startValue = _healthBar.value;
+        float currentTime = 0.0f;
 
-        while (Time.time < startTime + _speedChangeValue)
+        while(currentTime < _timeChangeValue)
         {
-            float elapsedTime = Time.time - startTime;
-            float progress = Mathf.Clamp01(elapsedTime / _speedChangeValue);
-            float currentValue = Mathf.Lerp(startValue, _currentHealth, progress);
-            _healthBar.value = currentValue;
+            currentTime += Time.deltaTime;
+            _healthBar.value = Mathf.MoveTowards(_healthBar.value, _currentHealth, _speedChangeValue);
             yield return null;
         }
-    }
-
-    private IEnumerator WaitForCoroutine(IEnumerator coroutine)
-    {
-        yield return StartCoroutine(coroutine);
     }
 }
